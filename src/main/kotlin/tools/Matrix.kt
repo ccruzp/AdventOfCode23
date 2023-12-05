@@ -2,52 +2,74 @@ package tools
 
 /**
  * Class that represents a Matrix.
+ *
+ * @property rows number of rows in this matrix
+ * @property columns number of columns in this matrix.
  */
-class Matrix() {
+class Matrix(private val rows: Int, private val columns: Int) {
 
-    // Inner representation of the Matrix
-    private val rows = mutableListOf(mutableListOf<Char>())
+    // Inner representation of the matrix.
+    private var innerMatrix = Array(rows) { Array(columns) {' '} }
 
-    private operator fun set(i: Int, value: MutableList<Char>) {
-        if (i >= rows.size) {
-            return
-        }
-        rows[i] = value
-    }
-
-    private operator fun get(i: Int): MutableList<Char> {
-        if (i >= rows[i].size) {
-            return emptyList<Char>().toMutableList()
-        }
-        return rows[i]
-    }
-
-    companion object  {
+    companion object {
         /**
-         * Create a matrix from a text file. If the Matrix cannot be created, throws an exception.
-         *
-         * @param data [String] that contains the path to the file to be used as input.
-         * @return Matrix associated to the data provided.
+         * @param data [String] to be parsed into a Matrix.
+         * @return Matrix associated to the provided [String]
          */
         fun from(data: String): Matrix {
-            val matrix = Matrix()
-            val lines = data.lines()
-            for (i in lines.indices) {
-                matrix[i] = mutableListOf()
-                for (j in 0..< lines[i].length) {
-                    matrix[i].add(j, lines[i][j])
+            val maxRows = data.lines().size
+            val maxCol = data.lines()[0].length
+
+            val matrix = Matrix(maxRows, maxCol)
+
+            for (i in 0..< maxRows) {
+                if (data.lines()[i].isBlank()) {
+                    continue
+                }
+                for (j in 0..< maxCol) {
+                    matrix[i][j] = data.lines()[i][j]
                 }
             }
-
-            /*for (line in data.lines()) {
-                val newCol = mutableListOf<Char>()
-                for (char in line) {
-                    newCol.add(char)
-                }
-                matrix.rows.add(newCol)
-            }*/
             return matrix
         }
+    }
+
+    private operator fun get(i: Int): Array<Char> {
+        return innerMatrix[i]
+    }
+
+    private operator fun set(value: Char, at: Coordinate) {
+        add(value = value, at = at)
+    }
+
+    /**
+     * Adds an element to this Matrix.
+     *
+     * @param at Position in this Matrix where the element is to be inserted.
+     * @param value value to be added to this Matrix.
+     * @return _true_ if [value] was successfully added at the provided [Coordinate]; otherwise returns _false_.
+     */
+    private fun add(value: Char, at: Coordinate): Boolean {
+        if (at.row >= rows || at.column >= columns) {
+            return false
+        }
+
+        innerMatrix[at.row][at.column] = value
+        return true
+    }
+
+    /**
+     * Get the value at the specified [Coordinate]
+     *
+     * @param from [Coordinate] to get the value from.
+     * @return value stored in the provided [Coordinate]
+     */
+    fun get(from: Coordinate): Char {
+        if (from.row >= rows || from.column >= columns) {
+            throw IllegalArgumentException("Coordinates $from are outside this Matrix")
+        }
+
+        return innerMatrix[from.row][from.column]
     }
 
     /**
@@ -60,7 +82,6 @@ class Matrix() {
     fun getAdjacent(row: Int, column: Int): List<Coordinate> {
         val coordinates = mutableListOf<Coordinate>()
 
-        println("Rows: ${rows.size}\nColumns: ${rows[0].size}\n")
         for (i in -1..1) {
             for (j in -1..1) {
                 if (i == 0 && j == 0) {
@@ -71,8 +92,8 @@ class Matrix() {
 
                 if (adjacentRow >= 0
                     && adjacentColumn >= 0
-                    && adjacentRow < rows.size
-                    && adjacentColumn < rows[0].size
+                    && adjacentRow < innerMatrix.size
+                    && adjacentColumn < innerMatrix[row].size
                     ) {
                     coordinates.add(Coordinate(adjacentRow, adjacentColumn))
                 }
@@ -83,9 +104,9 @@ class Matrix() {
 
     override fun toString(): String {
         var string = ""
-        for (row in rows) {
-            for (column in row) {
-                string += column
+        for (row in innerMatrix.indices) {
+            for (col in innerMatrix[row].indices) {
+                string += "${innerMatrix[row][col]}"
             }
             string += '\n'
         }

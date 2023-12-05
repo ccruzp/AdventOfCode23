@@ -10,6 +10,10 @@ class Schematic(data: String) {
      */
     val matrix = Matrix.from(data)
 
+    override fun toString(): String {
+        return matrix.toString()
+    }
+
 
 }
 

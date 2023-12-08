@@ -3,13 +3,13 @@ package tools
 /**
  * Class that represents a Matrix.
  *
- * @property rows number of rows in this matrix
- * @property columns number of columns in this matrix.
+ * @property numRows number of rows in this matrix
+ * @property numColumns number of columns in this matrix.
  */
-class Matrix(private val rows: Int, private val columns: Int) {
+class Matrix(private val numRows: Int, private val numColumns: Int) {
 
     // Inner representation of the matrix.
-    private var innerMatrix = Array(rows) { Array(columns) {' '} }
+    var innerMatrix: Array<Array<Char?>> = Array(numRows) { arrayOfNulls(numColumns) }
 
     companion object {
         /**
@@ -20,6 +20,7 @@ class Matrix(private val rows: Int, private val columns: Int) {
             val maxRows = data.lines().size
             val maxCol = data.lines()[0].length
 
+            println("Creating $maxRows x $maxCol matrix")
             val matrix = Matrix(maxRows, maxCol)
 
             for (i in 0..< maxRows) {
@@ -34,42 +35,61 @@ class Matrix(private val rows: Int, private val columns: Int) {
         }
     }
 
-    private operator fun get(i: Int): Array<Char> {
-        return innerMatrix[i]
-    }
-
-    private operator fun set(value: Char, at: Coordinate) {
-        add(value = value, at = at)
-    }
-
-    /**
-     * Adds an element to this Matrix.
-     *
-     * @param at Position in this Matrix where the element is to be inserted.
-     * @param value value to be added to this Matrix.
-     * @return _true_ if [value] was successfully added at the provided [Coordinate]; otherwise returns _false_.
-     */
-    private fun add(value: Char, at: Coordinate): Boolean {
-        if (at.row >= rows || at.column >= columns) {
-            return false
-        }
-
-        innerMatrix[at.row][at.column] = value
-        return true
-    }
-
     /**
      * Get the value at the specified [Coordinate]
      *
      * @param from [Coordinate] to get the value from.
      * @return value stored in the provided [Coordinate]
      */
-    fun get(from: Coordinate): Char {
-        if (from.row >= rows || from.column >= columns) {
+    fun get(from: Coordinate): Char? {
+        if (from.row >= numRows || from.column >= numColumns) {
             throw IllegalArgumentException("Coordinates $from are outside this Matrix")
         }
 
         return innerMatrix[from.row][from.column]
+    }
+
+    /**
+     * Operator to obtain all the values in the provided [row]
+     *
+     * @param row row of this Matrix to obtain the values from.
+     * @return an [Array] that contains all the values in this Matrix at [row].
+     */
+    operator fun get(row: Int): Array<Char?> {
+        return innerMatrix[row]
+    }
+
+    /**
+     * Operator to set a [value] [at] a given [Coordinate]
+     *
+     * @param value to be set at the given [Coordinate].
+     * @param at [Coordinate] to set [value] to.
+     */
+    operator fun set(value: Char, at: Coordinate) {
+        add(value = value, at = at)
+    }
+
+    /**
+     * Return the [Coordinate] of the next position in this row.
+     *
+     * If the given [position] is the last element in the row, returns _null_
+     *
+     * @param position [Coordinate] of the position to obtain the next from.
+     * @return [Coordinate] of the next element in the row (if it exists); otherwise returns _null_
+     */
+    fun getNextInRow(position: Coordinate): Coordinate? {
+        val nextCol = position.column + 1
+        return if (nextCol >= numColumns) null else Coordinate(position.row, nextCol)
+    }
+
+    /**
+     * Returns the [Coordinate] adjacent to the given [position].
+     *
+     * @param position [Coordinate] in this Matrix.
+     * @return [List] of adjacent [Coordinate] to the given [position]
+     */
+    fun getAdjacent(position: Coordinate): List<Coordinate> {
+        return getAdjacent(position.row, position.column)
     }
 
     /**
@@ -79,7 +99,7 @@ class Matrix(private val rows: Int, private val columns: Int) {
      * @param column column where the element is.
      * @return [List] that contains the coordinates (row, column) of all the adjacent positions.
      */
-    fun getAdjacent(row: Int, column: Int): List<Coordinate> {
+    private fun getAdjacent(row: Int, column: Int): List<Coordinate> {
         val coordinates = mutableListOf<Coordinate>()
 
         for (i in -1..1) {
@@ -102,11 +122,30 @@ class Matrix(private val rows: Int, private val columns: Int) {
         return coordinates
     }
 
+    /**
+     * Adds an element to this Matrix.
+     *
+     * @param at Position in this Matrix where the element is to be inserted.
+     * @param value value to be added to this Matrix.
+     * @return _true_ if [value] was successfully added at the provided [Coordinate]; otherwise returns _false_.
+     */
+    private fun add(value: Char, at: Coordinate): Boolean {
+        if (at.row >= numRows || at.column >= numColumns) {
+            return false
+        }
+
+        innerMatrix[at.row][at.column] = value
+        return true
+    }
+
     override fun toString(): String {
         var string = ""
         for (row in innerMatrix.indices) {
             for (col in innerMatrix[row].indices) {
-                string += "${innerMatrix[row][col]}"
+                val value = innerMatrix[row][col]
+                if (value != null) {
+                    string += "$value"
+                }
             }
             string += '\n'
         }

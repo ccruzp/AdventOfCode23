@@ -83,6 +83,23 @@ class Matrix(private val numRows: Int, private val numColumns: Int) {
     }
 
     /**
+     * Check if [coordinate] is adjacent to any [Coordinate] the given [List]
+     *
+     * @param coordinate [Coordinate] to check
+     * @param list [List] of [Coordinate]
+     * @return _true_ if [coordinate] is adjacent to any [Coordinate] in [list]
+     */
+    fun isAdjacent(coordinate: Coordinate, list: List<Coordinate>): Boolean {
+        val adjacents = getAdjacent(coordinate)
+        for (adjacent in adjacents) {
+            if (list.contains(adjacent)) {
+                return true
+            }
+        }
+        return false
+    }
+
+    /**
      * Returns the [Coordinate] adjacent to the given [position].
      *
      * @param position [Coordinate] in this Matrix.

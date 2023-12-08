@@ -19,6 +19,11 @@ class Schematic(data: String) {
     internal val matrix = Matrix.from(data)
 
     /**
+     * [Map] that keeps track of the gears in this Schematic.
+     */
+    internal val potentialGears = mutableSetOf<Coordinate>()
+
+    /**
      * Retrieve all the part numbers in this Schematic.
      *
      * A part number is defined as any number that is adjacent (even diagonally) to a symbol (different that'.').
@@ -53,6 +58,9 @@ class Schematic(data: String) {
             val isAlphaNumeric = value.isLetterOrDigit()
 
             if (!isAlphaNumeric && value != '.') {
+                if (value == '*') {
+                    potentialGears.add(coordinate)
+                }
                 return true
             }
         }
@@ -148,4 +156,35 @@ fun main() {
         sum += string.toInt()
     }
     println("Total sum of parts numbers: $sum")
+
+    val gears = mutableMapOf<Coordinate, MutableList<Number>>()
+    for (value in schematic.potentialGears) {
+        for (number in partNumbers) {
+            if (schematic.matrix.isAdjacent(value, number.toList())) {
+                if (gears[value] == null) {
+                    gears[value] = mutableListOf()
+                }
+                gears[value]?.add(number)
+            }
+        }
+    }
+
+    var totalGears = 0
+    for (entries in gears.entries) {
+        var product = 1
+        if (entries.value.size != 2) {
+            continue
+        }
+        for (number in entries.value) {
+            var figure = ""
+            for (digit in number.toList()) {
+                figure += schematic.matrix.get(from = digit)
+            }
+
+            product *= figure.toInt()
+        }
+
+        totalGears += product
+    }
+    println("Total gears: $totalGears")
 }

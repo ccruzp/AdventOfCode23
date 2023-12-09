@@ -5,7 +5,7 @@ import tools.StringHandler
 /**
  * Class that represents a Scratchcard.
  */
-class Scratchcard(val winningNumbers: List<Int>, val obtainedNumbers: List<Int>) {
+class Scratchcard(private val winningNumbers: List<Int>, private val obtainedNumbers: List<Int>) {
 
     companion object {
         /**
@@ -20,27 +20,10 @@ class Scratchcard(val winningNumbers: List<Int>, val obtainedNumbers: List<Int>)
             val first = numbers.split('|')[0].split(' ')
             val second = numbers.split('|')[1].split(' ')
 
-            val winners = toInts(first)
-            val obtained = toInts(second)
+            val winners = StringHandler.toInts(line = first)
+            val obtained = StringHandler.toInts(line = second)
 
-            return Scratchcard(winners, obtained)
-        }
-
-        /**
-         * Helper function to parse a [List] of [String] and transform it into [Int]
-         *
-         * @param line [List] of [String] to be transformed.
-         * @return [List] of [Int]
-         * @throws IllegalArgumentException if [line] contains non-Int characters]
-         */
-        private fun toInts(line: List<String>): List<Int> {
-            val numbers = mutableListOf<Int>()
-            for (element in line) {
-                if (element.isNotBlank()) {
-                    numbers.add(element.toInt())
-                }
-            }
-            return numbers
+            return Scratchcard(winningNumbers = winners, obtainedNumbers = obtained)
         }
     }
 
@@ -48,14 +31,7 @@ class Scratchcard(val winningNumbers: List<Int>, val obtainedNumbers: List<Int>)
      * @return [Int] that contains the amount of points given by this Scratchcard
      */
     fun getPoints(): Int {
-        var numOfMatch = 0
-        for (number in obtainedNumbers) {
-            if (winningNumbers.contains(number)) {
-                numOfMatch += 1
-            }
-        }
-
-        return when (numOfMatch) {
+        return when (val numOfMatch = getNumberOfMatches()) {
             0 -> 0
             1 -> 1
             else -> {
@@ -68,9 +44,22 @@ class Scratchcard(val winningNumbers: List<Int>, val obtainedNumbers: List<Int>)
         }
     }
 
+    /**
+     * @return the number of matches between the [obtainedNumbers] and the [winningNumbers]
+     */
+    fun getNumberOfMatches(): Int {
+        var numOfMatch = 0
+        for (number in obtainedNumbers) {
+            if (winningNumbers.contains(number)) {
+                numOfMatch += 1
+            }
+        }
+        return numOfMatch
+    }
+
     override fun toString(): String {
-        val winning = winningNumbers.fold("") { acc: String, i: Int -> "$acc $i" }
-        val obtained = obtainedNumbers.fold("") { acc: String, i: Int -> "$acc $i" }
+        val winning = winningNumbers.fold(initial = "") { acc: String, i: Int -> "$acc $i" }
+        val obtained = obtainedNumbers.fold(initial = "") { acc: String, i: Int -> "$acc $i" }
 
         return "$winning | $obtained"
 
@@ -78,15 +67,29 @@ class Scratchcard(val winningNumbers: List<Int>, val obtainedNumbers: List<Int>)
 }
 
 fun main() {
-    //val data = StringHandler.readFile("src\\main\\resources\\fakeset.txt")
     val data = StringHandler.readFile("src\\main\\resources\\scratchcards.txt")
     val cards = mutableListOf<Scratchcard>()
-    for (line in data.lines()) {
-        if (line.isNotBlank()) {
-            cards.add(Scratchcard.from(line))
+    val lines = data.lines()
+    val totalCards = MutableList(lines.size -1) { 1 }
+    for (i in lines.indices) {
+        if (lines[i].isNotBlank()) {
+            val card = Scratchcard.from(lines[i])
+            cards.add(card)
+
+            val numberOfMatches = card.getNumberOfMatches()
+            if (numberOfMatches == 0) {
+                continue
+            }
+
+            for (j in 1..numberOfMatches) {
+                totalCards[i + j] += totalCards[i]
+            }
         }
     }
 
     val totalPoints = cards.fold(initial = 0) { acc: Int, scratchcard: Scratchcard -> acc + scratchcard.getPoints() }
     println("Total points -> $totalPoints")
+
+    val sum = totalCards.fold(initial = 0) { acc: Int, i: Int -> acc + i }
+    println("Total cards -> $sum")
 }

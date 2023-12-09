@@ -37,6 +37,6 @@ class Calibrator {
 
 fun main() {
     val content = StringHandler.readFile("src\\main\\resources\\calibration.txt")
-    val splitByLines = StringHandler.splitByLines(content)
+    val splitByLines = content.lines()
     println(Calibrator.calibrate(splitByLines))
 }

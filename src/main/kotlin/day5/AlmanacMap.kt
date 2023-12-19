@@ -16,27 +16,6 @@ class AlmanacMap {
      */
     private data class Chart(val src: Long, val dst: Long, val length: Long)
 
-    companion object {
-
-        /**
-         * Create an Almanac from the given [List] of [String]
-         *
-         * @param input [List] that contains the values to fill this Map with.
-         * @return Map filled with the provided values.
-         */
-        fun from(input: List<String>): AlmanacMap {
-            val map = AlmanacMap()
-            for (line in input) {
-                if (line.isEmpty()) {
-                    continue
-                }
-                val values = line.split(' ')
-                map.addChart(src = values[1], dst = values[0], length = values[2])
-            }
-            return map
-        }
-    }
-
     /**
      * Add a new chart to this Map.
      *
